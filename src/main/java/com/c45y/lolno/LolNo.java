@@ -107,18 +107,20 @@ public class LolNo extends JavaPlugin {
             }
             if (cmd.getName().equalsIgnoreCase("unmute")) {
                 if (args.length == 1) {
-                    Player mutee = getServer().getPlayer(args[0]);
-                    if (mutee != null) {
-                        String muteeName = mutee.getName().toLowerCase();
+                	String muteeName = args[0].toLowerCase();
+
+                	if (mutedUsers.contains(muteeName)) {
                         removeMuteUser(muteeName);
-                        if (mutee instanceof Player) {
-                            ((Player) mutee).sendMessage(ChatColor.AQUA + "You have been unmuted by a member of staff.");
-                        }
-                        messageStaff(ChatColor.AQUA + sender.getName() + " has unmuted " + mutee.getName());
+	                    Player mutee = getServer().getPlayer(muteeName);
+	                    if (mutee != null) {
+	                        if (mutee instanceof Player) {
+	                            ((Player) mutee).sendMessage(ChatColor.AQUA + "You have been unmuted by a member of staff.");
+	                        }
+	                    }
+
+                        messageStaff(ChatColor.AQUA + sender.getName() + " has unmuted " + muteeName);
                     } else {
                         sender.sendMessage(ChatColor.AQUA + "Cannot find player");
-                        
-                        
                     }
                     return true;
                 }
