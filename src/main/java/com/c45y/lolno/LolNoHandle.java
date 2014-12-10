@@ -29,8 +29,14 @@ public class LolNoHandle implements Listener {
         }
         String[] args = event.getMessage().substring(1).split(" ");
         if (plugin.mutedUsers.contains(event.getPlayer().getName().toLowerCase())) {
-            if (plugin.allowedCommands.contains(args[0].toLowerCase())) {
-                    return;
+            if (plugin.mode.equalsIgnoreCase("whitelist")) {
+                if (plugin.allowedCommands.contains(args[0].toLowerCase())) {
+                        return;
+                }
+            } else if (plugin.mode.equalsIgnoreCase("blacklist")) {
+                if (!plugin.blockedCommands.contains(args[0].toLowerCase())) {
+                        return;
+                }
             }
             event.setCancelled(true);
         }

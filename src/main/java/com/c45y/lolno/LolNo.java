@@ -17,8 +17,10 @@ public class LolNo extends JavaPlugin {
     public boolean command_enabled;
     public boolean join_enabled;
     public boolean block_enabled;
+    public String mode;
     public List<String> mutedUsers = new ArrayList<String>();
     public List<String> allowedCommands;
+    public List<String> blockedCommands;
     private final LolNoHandle loglistener = new LolNoHandle(this);
     Logger log = Logger.getLogger("Minecraft");
 
@@ -26,21 +28,7 @@ public class LolNo extends JavaPlugin {
     public void onEnable() {
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(loglistener, this);
-
-        getConfig().options().copyDefaults(true);
-        getConfig().addDefault("LolNo.blocks.chat", false);
-        getConfig().addDefault("LolNo.blocks.command", false);
-        getConfig().addDefault("LolNo.blocks.part", false);
-        getConfig().addDefault("LolNo.blocks.block", false);
-        getConfig().addDefault("muted.allow.commands", new String[]{"modreq", "message", "help", "tell"});
-
-        mutedUsers.addAll(getConfig().getStringList("muted.users"));
-
-        chat_enabled = getConfig().getBoolean("LolNo.blocks.chat");
-        command_enabled = getConfig().getBoolean("LolNo.blocks.command");
-        join_enabled = getConfig().getBoolean("LolNo.blocks.part");
-        block_enabled = getConfig().getBoolean("LolNo.blocks.block");
-        allowedCommands = getConfig().getStringList("muted.allow.commands");
+        loadConfig();
         saveConfig();
     }
 
@@ -49,6 +37,12 @@ public class LolNo extends JavaPlugin {
         if (sender.hasPermission("LolNo.admin") || sender.isOp()) {
             if (cmd.getName().equalsIgnoreCase("lolno")) {
                 if (args.length == 1) {
+                    if (args[0].equals("reload")) {
+                        reloadConfig();
+                        loadConfig();
+                        sender.sendMessage("[LolNo] Reloaded");
+                        return true;
+                    }
                     if (args[0].equals("status")) {
                         printStatus(sender);
                         return true;
@@ -56,6 +50,10 @@ public class LolNo extends JavaPlugin {
                     if (args[0].equals("help")) {
                         printHelp(sender);
                         return true;
+                    }
+                    if (args[0].equalsIgnoreCase("reload")) {
+                        reloadConfig();
+                        loadConfig();
                     }
                     if (args[0].equals("chat")) {
                         chat_enabled = !chat_enabled;
@@ -107,16 +105,16 @@ public class LolNo extends JavaPlugin {
             }
             if (cmd.getName().equalsIgnoreCase("unmute")) {
                 if (args.length == 1) {
-                	String muteeName = args[0].toLowerCase();
+                    String muteeName = args[0].toLowerCase();
 
-                	if (mutedUsers.contains(muteeName)) {
+                    if (mutedUsers.contains(muteeName)) {
                         removeMuteUser(muteeName);
-	                    Player mutee = getServer().getPlayer(muteeName);
-	                    if (mutee != null) {
-	                        if (mutee instanceof Player) {
-	                            ((Player) mutee).sendMessage(ChatColor.AQUA + "You have been unmuted by a member of staff.");
-	                        }
-	                    }
+                        Player mutee = getServer().getPlayer(muteeName);
+                        if (mutee != null) {
+                            if (mutee instanceof Player) {
+                                ((Player) mutee).sendMessage(ChatColor.AQUA + "You have been unmuted by a member of staff.");
+                            }
+                        }
 
                         messageStaff(ChatColor.AQUA + sender.getName() + " has unmuted " + muteeName);
                     } else {
@@ -143,6 +141,28 @@ public class LolNo extends JavaPlugin {
         saveConfig();
     }
 
+    private void loadConfig() {
+        getConfig().options().copyDefaults(true);
+        getConfig().addDefault("LolNo.blocks.chat", false);
+        getConfig().addDefault("LolNo.blocks.command", false);
+        getConfig().addDefault("LolNo.blocks.part", false);
+        getConfig().addDefault("LolNo.blocks.block", false);
+        getConfig().addDefault("LolNo.mode", "blacklist");
+        getConfig().addDefault("muted.allow.commands", new String[]{"modreq", "message", "help", "tell"});
+        getConfig().addDefault("muted.block.commands", new String[]{""});
+
+        mutedUsers.clear();
+        mutedUsers.addAll(getConfig().getStringList("muted.users"));
+
+        chat_enabled = getConfig().getBoolean("LolNo.blocks.chat");
+        command_enabled = getConfig().getBoolean("LolNo.blocks.command");
+        join_enabled = getConfig().getBoolean("LolNo.blocks.part");
+        block_enabled = getConfig().getBoolean("LolNo.blocks.block");
+        mode = getConfig().getString("LolNo.mode");
+        allowedCommands = getConfig().getStringList("muted.allow.commands");
+        blockedCommands = getConfig().getStringList("muted.block.commands");
+    }
+
     private void toggleConfig(String node) {
         getConfig().set(node, !getConfig().getBoolean(node));
         saveConfig();
@@ -155,6 +175,7 @@ public class LolNo extends JavaPlugin {
         sender.sendMessage(ChatColor.GRAY + "    part - Disable all join/part messages.");
         sender.sendMessage(ChatColor.GRAY + "    blocks - Disable all block creation/destruction.");
         sender.sendMessage(ChatColor.GRAY + "    status - Show the current status of lockdown.");
+        sender.sendMessage(ChatColor.GRAY + "    reload - Reload the config.");
     }
 
     public void printStatus(CommandSender sender) {

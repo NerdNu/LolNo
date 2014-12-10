@@ -1,6 +1,6 @@
 name: LolNo
 main: com.c45y.lolno.LolNo
-version: 0.3
+version: 0.4
 permissions:
     LolNo.mod:
         description: Chat while antispam shit is active
