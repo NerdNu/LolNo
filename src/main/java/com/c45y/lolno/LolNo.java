@@ -90,14 +90,20 @@ public class LolNo extends JavaPlugin {
                 }
             }
             if (cmd.getName().equalsIgnoreCase("mute")) {
-                if (args.length == 1) {
+                if (args.length >= 1) {
                     Player mutee = getServer().getPlayer(args[0]);
+                    String reason = "";
+                    
+                    for (int i = 1; i < args.length; ++i) {
+                        reason += args[i] + " ";
+                    }
+                    
                     if (mutee != null) {
                         String muteeName = mutee.getName().toLowerCase();
                         if (!mutedUsers.contains(muteeName) && mutee.isOnline()) {
                             addMuteUser(muteeName);
-                            mutee.sendMessage(ChatColor.AQUA + "You have been muted by a member of staff.");
-                            messageStaff(ChatColor.AQUA + sender.getName() + " has muted " + mutee.getName());
+                            mutee.sendMessage(ChatColor.AQUA + "You have been muted by a member of staff." + ((args.length == 1)?"":" Reason: " + reason));
+                            messageStaff(ChatColor.AQUA + sender.getName() + " has muted " + mutee.getName() + ((args.length == 1)?"":" Reason: " + reason));
                         }
                         return true;
                     }
